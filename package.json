@@ -1,0 +1,24 @@
+{
+	"name": "fragments-viewer",
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"build": "node esbuild.config.js",
+		"start": "node esbuild.config.js serve",
+		"publish": "npm run build && copyfiles -u 1 public/* docs"
+	},
+	"devDependencies": {
+		"@jgoz/esbuild-plugin-typecheck": "^4.0.3",
+		"@types/node": "^22.15.17",
+		"@types/three": "^0.176.0",
+		"copyfiles": "^2.4.1",
+		"esbuild": "^0.19.0",
+		"http-server": "^14.0.0"
+	},
+	"dependencies": {
+		"@thatopen/components": "^2.4.10",
+		"@thatopen/fragments": "^3.0.6",
+		"@thatopen/ui": "^2.4.5",
+		"three": "^0.175.0"
+	}
+}
