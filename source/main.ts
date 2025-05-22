@@ -54,6 +54,7 @@ async function LoadModelFromBuffer (buffer: ArrayBuffer, world: OBC.World, fragm
 
 	const progressBar = new ProgressBar ();
 	progressBar.SetText ('Loading model...');
+	await LoadModelInternal (buffer, world, fragments);
 	progressBar.Hide ();
 }
 
