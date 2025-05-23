@@ -3,6 +3,8 @@ import * as OBC from '@thatopen/components';
 import * as FRAGS from '@thatopen/fragments';
 import * as BUI from "@thatopen/ui";
 
+const ModelIdentifier = 'model';
+
 class ProgressBar
 {
 	progressDiv: HTMLElement;
@@ -24,10 +26,45 @@ class ProgressBar
 	}
 }
 
+async function FitModelToWindow (world: OBC.World, fragments: FRAGS.FragmentsModels)
+{
+	let model = fragments.models.list.get (ModelIdentifier);
+	if (model === undefined || world.camera.controls === undefined) {
+		return;
+	}
+
+	let boxes = await model.getBoxes ();
+	let boxMinMaxPoints = [];
+	for (let box of boxes) {
+		boxMinMaxPoints.push (box.min);
+		boxMinMaxPoints.push (box.max);
+	}
+	let boundingBox = new THREE.Box3 ().setFromPoints (boxMinMaxPoints);
+	let boundingSphere = boundingBox.getBoundingSphere (new THREE.Sphere ());
+
+	let perspectiveCamera = world.camera.three as THREE.PerspectiveCamera;
+	let fieldOfView = perspectiveCamera.fov / 2.0;
+	if (perspectiveCamera.aspect < 1.0) {
+		fieldOfView = fieldOfView * perspectiveCamera.aspect;
+	}
+
+	let center = boundingSphere.center;
+	let centerToEye = new THREE.Vector3 ().subVectors (perspectiveCamera.position, center).normalize ();
+	let distance = boundingSphere.radius / Math.sin (THREE.MathUtils.degToRad (fieldOfView));
+	let eye = new THREE.Vector3 ().addVectors (center, centerToEye.multiplyScalar (distance));
+
+	perspectiveCamera.near = 1.0;
+	perspectiveCamera.far = distance * 100.0;
+	perspectiveCamera.updateProjectionMatrix ();
+
+	world.camera.controls.setLookAt (eye.x, eye.y, eye.z, center.x, center.y, center.z, true);
+	fragments.update (true);
+}
+
 async function LoadModelInternal (buffer: ArrayBuffer, world: OBC.World, fragments: FRAGS.FragmentsModels)
 {
 	try {
-		const model = await fragments.load (buffer, { modelId: 'model' });
+		let model = await fragments.load (buffer, { modelId: ModelIdentifier });
 		model.object.addEventListener ('childadded', (ev : any) => {
 			let child : THREE.Mesh = ev.child as THREE.Mesh;
 			let materialArr = child.material as THREE.Material[];
@@ -35,21 +72,14 @@ async function LoadModelInternal (buffer: ArrayBuffer, world: OBC.World, fragmen
 				material.side = THREE.DoubleSide;
 			}
 		});
-
-		let boxes = await model.getBoxes ();
-		let boxCenters = boxes.map (box => box.getCenter (new THREE.Vector3 ()));
-		let centerBox = new THREE.Box3 ().setFromPoints (boxCenters);
-		let center = centerBox.getCenter (new THREE.Vector3 ());
-		world.camera.controls?.setLookAt (100, 100, 100, center.x, center.y, center.z, true);
-		fragments.update (true);
+		await FitModelToWindow (world, fragments);
 	} catch {
-		
 	}
 }
 
 async function LoadModelFromBuffer (buffer: ArrayBuffer, world: OBC.World, fragments: FRAGS.FragmentsModels)
 {
-	await fragments.disposeModel ('model');
+	await fragments.disposeModel (ModelIdentifier);
 	fragments.update (true);
 
 	const progressBar = new ProgressBar ();
@@ -60,7 +90,7 @@ async function LoadModelFromBuffer (buffer: ArrayBuffer, world: OBC.World, fragm
 
 async function LoadModelFromUrl (url: string, world: OBC.World, fragments: FRAGS.FragmentsModels)
 {
-	await fragments.disposeModel ('model');
+	await fragments.disposeModel (ModelIdentifier);
 	fragments.update (true);
 
 	const progressBar = new ProgressBar ();
@@ -166,11 +196,14 @@ async function Init ()
 	BUI.Manager.init ();
 
 	const panel = BUI.Component.create<BUI.PanelSection> (() => {
-		const onLoadExampleModel = () => {
-			LoadModelFromUrl ('stacked_towers.frag', world, fragments);
+		const onFitToWindow = async () => {
+			await FitModelToWindow (world, fragments);
 		};
 		return BUI.html`
 			<bim-panel id="controls-panel" active label="Fragments Viewer" class="sidebar">
+			<bim-panel-section fixed label="Controls">
+				<bim-button label="Fit to window" @click=${onFitToWindow}></bim-button>
+			</bim-panel-section>
 			<bim-panel-section fixed label="How to use?">
 				<div class="section">💡 Drag and drop .frag files to this window.</div>
 				<div class="section">💡 Specify model location as url hash (<a href="#stacked_towers.frag">example</a>).</div>
