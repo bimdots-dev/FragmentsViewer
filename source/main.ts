@@ -61,10 +61,28 @@ async function FitModelToWindow (world: OBC.World, fragments: FRAGS.FragmentsMod
 	fragments.update (true);
 }
 
+function IsCompressedBuffer (buffer: ArrayBuffer) : boolean
+{
+	if (buffer.byteLength < 2) {
+		return false;
+	}
+	let intArray = new Uint8Array (buffer);
+	if (intArray[0] !== 0x78) {
+		return false;
+	}
+	if (intArray[1] !== 0x01 && intArray[1] !== 0x9C && intArray[1] !== 0xDA) {
+		return false;
+	}
+	return true;
+}
+
 async function LoadModelInternal (buffer: ArrayBuffer, world: OBC.World, fragments: FRAGS.FragmentsModels)
 {
 	try {
-		let model = await fragments.load (buffer, { modelId: ModelIdentifier });
+		let model = await fragments.load (buffer, {
+			modelId: ModelIdentifier,
+			raw: !IsCompressedBuffer (buffer)
+		});
 		model.object.addEventListener ('childadded', (ev : any) => {
 			let child : THREE.Mesh = ev.child as THREE.Mesh;
 			let materialArr = child.material as THREE.Material[];
