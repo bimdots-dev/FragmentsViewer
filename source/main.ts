@@ -127,6 +127,8 @@ async function LoadModelFromUrl (url: string, world: OBC.World, fragments: FRAGS
 async function LoadModelFromUrlHash (hash: string, world: OBC.World, fragments: FRAGS.FragmentsModels)
 {
 	if (hash.length === 0) {
+		await fragments.disposeModel (ModelIdentifier);
+		fragments.update (true);
 		return;
 	}
 	LoadModelFromUrl (hash.substring (1), world, fragments);
@@ -223,8 +225,8 @@ async function Init ()
 				<bim-button label="Fit to window" @click=${onFitToWindow}></bim-button>
 			</bim-panel-section>
 			<bim-panel-section fixed label="How to use?">
-				<div class="section">💡 Drag and drop .frag files to this window.</div>
-				<div class="section">💡 Specify model location as url hash (<a href="#stacked_towers.frag">example</a>).</div>
+				<div class="section">Drag and drop .frag files to this window, or load an <a href="#stacked_towers.frag">example</a>.</div>
+				<div class="section">See the <a href="https://github.com/bimdots-dev/FragmentsViewer/blob/main/README.md">instructions</a> for other model loading possibilities.</div>
 			</bim-panel-section>
 			</bim-panel>
 		`;
