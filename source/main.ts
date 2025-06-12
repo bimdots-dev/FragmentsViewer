@@ -169,6 +169,7 @@ async function Init ()
 	world.camera.controls.addEventListener ('update', () => fragments.update ());
 	fragments.models.list.onItemSet.add (({ value: model }) => {
 		world.scene.three.add (model.object);
+		model.useCamera (world.camera.three);
 		fragments.update (true);
 	});
 
