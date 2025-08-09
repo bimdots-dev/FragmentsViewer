@@ -9,16 +9,16 @@
 	},
 	"devDependencies": {
 		"@jgoz/esbuild-plugin-typecheck": "^4.0.3",
-		"@types/node": "^22.15.17",
-		"@types/three": "^0.176.0",
+		"@types/node": "^24.2.1",
+		"@types/three": "^0.179.0",
 		"copyfiles": "^2.4.1",
-		"esbuild": "^0.19.0",
+		"esbuild": "^0.25.8",
 		"http-server": "^14.0.0"
 	},
 	"dependencies": {
-		"@thatopen/components": "^2.4.10",
-		"@thatopen/fragments": "^3.0.6",
-		"@thatopen/ui": "^2.4.5",
-		"three": "^0.175.0"
+		"@thatopen/components": "^3.1.1",
+		"@thatopen/fragments": "^3.1.6",
+		"@thatopen/ui": "^3.1.1",
+		"three": "^0.179.0"
 	}
 }
